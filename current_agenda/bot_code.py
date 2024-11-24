@@ -6,12 +6,16 @@ from weasyprint import HTML
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
+# from selenium.webdriver.common.by import By
 
 
 def generate_pdf(html_response: Any, output_file:str = "agenda.pdf")-> None:
     # Convert HTML content to PDF
     HTML(string=html_response.text).write_pdf(output_file)
+
+def get_screenshot():
+    #Todo figure out how to use chrome for testing with selenium
+    pass
 
 
 if __name__ == "__main__":
