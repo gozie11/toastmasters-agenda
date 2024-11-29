@@ -5,12 +5,37 @@ from dotenv import load_dotenv
 import time
 import random
 from datetime import datetime, timedelta
+from selenium.webdriver.common.by import By
+
 
 
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 # from selenium.webdriver.common.by import By
+
+def do_easyspeak_login(driver) -> None:
+    # Open the login page
+    driver.get("https://easy-speak.org/login.php")
+
+        # Load variables from the .env file
+    load_dotenv()
+
+    # Login URL and credentials
+    login_url = "https://easy-speak.org/login.php"
+    login_payload = {
+        "username": os.getenv("EASY_SPEAK_USERNAME"),
+        "password": os.getenv("EASY_SPEAK_PASSWORD") 
+    }
+
+    # Enter credentials and log in
+    driver.find_element(By.NAME, "username").send_keys(os.getenv("EASY_SPEAK_USERNAME"))
+    driver.find_element(By.NAME, "password").send_keys(os.getenv("EASY_SPEAK_PASSWORD"))
+    driver.find_element(By.NAME, "login").click()
+
+    # Wait for login to complete
+    time.sleep(5)
+    print("login attempt complete")
 
 def get_one_page_print_options() -> dict:
     print_options = {
@@ -24,6 +49,16 @@ def get_one_page_print_options() -> dict:
             }
 
     return print_options
+
+def get_agenda_pdf(driver):
+        # Navigate to the current agenda webpage and get the base 64 encoded version of it
+        url = get_meeting_url()  # Replace with your target URL
+        driver.get(url)
+        time.sleep(random.uniform(2, 5))  # Wait for 2-5 seconds randomly
+
+        return driver.execute_cdp_cmd("Page.printToPDF", get_one_page_print_options())["data"]
+
+
 def generate_agenda() -> None:
     # Path to the Chrome for Testing binary and ChromeDriver
     chrome_driver_path = "../chrome-for-testing/chromedriver-mac-arm64/chromedriver"
@@ -40,15 +75,10 @@ def generate_agenda() -> None:
     # Start WebDriver with Chrome for Testing driver
     service = Service(chrome_driver_path)
     driver = webdriver.Chrome(service=service, options=options)
-    # Define print options for one-page output
-    print_options = get_one_page_print_options()
     try:
-        # Navigate to the desired webpage
-        url = get_meeting_url()  # Replace with your target URL
-        driver.get(url)
-        time.sleep(random.uniform(2, 5))  # Wait for 2-5 seconds randomly
+        do_easyspeak_login(driver)
 
-        pdf_base64 = driver.execute_cdp_cmd("Page.printToPDF", print_options)["data"]
+        pdf_base64 = get_agenda_pdf(driver)
 
         # Decode the Base64 string and save it as a PDF
         with open("agenda.pdf", "wb") as pdf_file:
