@@ -1,8 +1,8 @@
+import base64
 from typing import Any
 import cloudscraper
 import os
 from dotenv import load_dotenv
-from weasyprint import HTML
 import time
 import random
 
@@ -12,12 +12,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 # from selenium.webdriver.common.by import By
 
+def get_one_page_print_options() -> dict:
+    print_options = {
+                "paperWidth": 8.5,   # Width in inches (e.g., 8.5 for Letter size)
+                "paperHeight": 11,   # Height in inches (e.g., 11 for Letter size)
+                "scale": .72,        # Adjust the scale to fit content (smaller scale shrinks content)
+                "marginTop": 0,      # Margins can also be minimized to fit more content
+                "marginBottom": 0,
+                "marginLeft": 0,
+                "marginRight": 0,
+            }
 
-def generate_pdf(html_response: Any, output_file:str = "agenda.pdf")-> None:
-    # Convert HTML content to PDF
-    HTML(string=html_response.text).write_pdf(output_file)
-
-def get_screenshot():
+    return print_options
+def get_agenda():
     #Todo figure out how to use chrome for testing with selenium
     # Path to the Chrome for Testing binary and ChromeDriver
     chrome_driver_path = "../chrome-for-testing/chromedriver-mac-arm64/chromedriver"
@@ -26,30 +33,29 @@ def get_screenshot():
     # Set up Selenium WebDriver with Chrome for Testing
     options = webdriver.ChromeOptions()
     options.binary_location = chrome_binary_path  # Use the Chrome for Testing binary
-    options.add_argument("--start-maximized")
-    options.add_argument("--window-size=1920,1080")  # Default window size
+    options.add_argument("--headless")
+    # The following arguments are necessary to make sure easy speak doesn't think this app is trying to maliciously interact with the site.
     options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
 
 
     # Start WebDriver with Chrome for Testing driver
     service = Service(chrome_driver_path)
     driver = webdriver.Chrome(service=service, options=options)
+    # Define print options for one-page output
+    print_options = get_one_page_print_options()
     try:
         # Navigate to the desired webpage
         url = "https://easy-speak.org/viewagenda.php?t=586027&pr=1"  # Replace with your target URL
         driver.get(url)
         time.sleep(random.uniform(2, 5))  # Wait for 2-5 seconds randomly
 
-        # Get the total height of the page
-        total_height = driver.execute_script("return document.body.scrollHeight")
+        pdf_base64 = driver.execute_cdp_cmd("Page.printToPDF", print_options)["data"]
 
-        # Set the window size to capture the full page
-        driver.set_window_size(1920, total_height)
+        # Decode the Base64 string and save it as a PDF
+        with open("agenda.pdf", "wb") as pdf_file:
+            pdf_file.write(base64.b64decode(pdf_base64))
 
-        # Capture full-page screenshot
-        screenshot_path = "full_page_screenshot.png"
-        driver.save_screenshot(screenshot_path)
-        print(f"Full-page screenshot saved as {screenshot_path}")
+        print("PDF saved as 'agenda.pdf'.")
 
     finally:
         # Clean up and close the driver
@@ -78,10 +84,4 @@ if __name__ == "__main__":
     if login_response.status_code == 200:
         print("Login successful!")
 
-    # Now fetch the agenda page
-    agenda_url = "https://easy-speak.org/viewagenda.php?t=586027&pr=1"
-    agenda_response = scraper.get(agenda_url)
-
-    generate_pdf(agenda_response)
-
-    get_screenshot()
+    get_agenda()
