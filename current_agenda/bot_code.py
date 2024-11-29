@@ -24,7 +24,6 @@ def get_one_page_print_options() -> dict:
 
     return print_options
 def get_agenda():
-    #Todo figure out how to use chrome for testing with selenium
     # Path to the Chrome for Testing binary and ChromeDriver
     chrome_driver_path = "../chrome-for-testing/chromedriver-mac-arm64/chromedriver"
     chrome_binary_path = "../chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
