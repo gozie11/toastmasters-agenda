@@ -58,7 +58,6 @@ def get_agenda_pdf(driver):
 
         return driver.execute_cdp_cmd("Page.printToPDF", get_one_page_print_options())["data"]
 
-
 def generate_agenda() -> None:
     # Path to the Chrome for Testing binary and ChromeDriver
     chrome_driver_path = "../chrome-for-testing/chromedriver-mac-arm64/chromedriver"
@@ -89,6 +88,7 @@ def generate_agenda() -> None:
     finally:
         # Clean up and close the driver
         driver.quit()
+
 def get_meeting_url() -> str:
     # Today's date
     current_date = datetime.now()
@@ -106,6 +106,7 @@ def get_meeting_url() -> str:
 
     url = f"https://easy-speak.org/viewagenda.php?t={current_t}&pr=1"
     return url
+
 def post_agenda_to_slack() -> None:
     # Make sure this path arg is robust ... should I be using os.path.join...??
     agenda_path = "agenda.pdf"
