@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import time
 import random
+from datetime import datetime, timedelta
 
 
 
@@ -23,7 +24,7 @@ def get_one_page_print_options() -> dict:
             }
 
     return print_options
-def get_agenda():
+def generate_agenda() -> None:
     # Path to the Chrome for Testing binary and ChromeDriver
     chrome_driver_path = "../chrome-for-testing/chromedriver-mac-arm64/chromedriver"
     chrome_binary_path = "../chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
@@ -43,7 +44,7 @@ def get_agenda():
     print_options = get_one_page_print_options()
     try:
         # Navigate to the desired webpage
-        url = "https://easy-speak.org/viewagenda.php?t=586027&pr=1"  # Replace with your target URL
+        url = get_meeting_url()  # Replace with your target URL
         driver.get(url)
         time.sleep(random.uniform(2, 5))  # Wait for 2-5 seconds randomly
 
@@ -58,7 +59,27 @@ def get_agenda():
     finally:
         # Clean up and close the driver
         driver.quit()
+def get_meeting_url() -> str:
+    # Today's date
+    current_date = datetime.now()
 
+    # Reference date and t value
+    reference_date = datetime(2024, 11, 26)
+    reference_t = 586027
+
+    # Calculate the difference in weeks
+    days_difference = (current_date - reference_date).days
+    weeks_difference = days_difference // 7  # Integer division for full weeks
+
+    # Calculate t for the current date
+    current_t = reference_t + weeks_difference
+
+    url = f"https://easy-speak.org/viewagenda.php?t={current_t}&pr=1"
+    return url
+def post_agenda_to_slack() -> None:
+    # Make sure this path arg is robust ... should I be using os.path.join...??
+    agenda_path = "agenda.pdf"
+    print("Agenda Posting not Implemented yet")
 
 if __name__ == "__main__":
 
