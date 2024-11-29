@@ -5,12 +5,37 @@ from dotenv import load_dotenv
 import time
 import random
 from datetime import datetime, timedelta
+from selenium.webdriver.common.by import By
+
 
 
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 # from selenium.webdriver.common.by import By
+
+def do_easyspeak_login(driver) -> None:
+    # Open the login page
+    driver.get("https://easy-speak.org/login.php")
+
+        # Load variables from the .env file
+    load_dotenv()
+
+    # Login URL and credentials
+    login_url = "https://easy-speak.org/login.php"
+    login_payload = {
+        "username": os.getenv("EASY_SPEAK_USERNAME"),
+        "password": os.getenv("EASY_SPEAK_PASSWORD") 
+    }
+
+    # Enter credentials and log in
+    driver.find_element(By.NAME, "username").send_keys(os.getenv("EASY_SPEAK_USERNAME"))
+    driver.find_element(By.NAME, "password").send_keys(os.getenv("EASY_SPEAK_PASSWORD"))
+    driver.find_element(By.NAME, "login").click()
+
+    # Wait for login to complete
+    time.sleep(5)
+    print("login attempt complete")
 
 def get_one_page_print_options() -> dict:
     print_options = {
