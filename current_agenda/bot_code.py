@@ -1,5 +1,4 @@
 import base64
-from typing import Any
 import cloudscraper
 import os
 from dotenv import load_dotenv
