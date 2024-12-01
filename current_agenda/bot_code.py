@@ -8,14 +8,14 @@ from datetime import datetime, timedelta
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-# from selenium.webdriver.common.by import By
+
+# Imports for slack bot
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 def do_easyspeak_login(driver) -> None:
     # Open the login page
     driver.get("https://easy-speak.org/login.php")
-
-        # Load variables from the .env file
-    load_dotenv()
 
     # Login URL and credentials
     login_url = "https://easy-speak.org/login.php"
@@ -104,33 +104,30 @@ def get_meeting_url() -> str:
     return url
 
 def post_agenda_to_slack() -> None:
-    # Make sure this path arg is robust ... should I be using os.path.join...??
-    agenda_path = "agenda.pdf"
-    print("Agenda Posting not Implemented yet")
+    # Post the agenda pdf located at the specified path to the specified channel id :)
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
+    channel_id = os.getenv("SLACK_CHANNEL_ID")
+    client = WebClient(token=slack_bot_token)
+    agenda_path = "./agenda.pdf"
+
+    try:
+        # Upload the PDF to Slack
+        response = client.files_upload_v2(
+            channel=channel_id,
+            file=agenda_path,
+            title="Today's Agenda :)",
+            initial_comment="Here is the current agenda!",
+        )
+        print("PDF uploaded successfully:", response["file"]["id"])
+    except SlackApiError as e:
+        print(f"Error uploading file: {e.response['error']}")
 
 if __name__ == "__main__":
 
-    # Create a cloudscraper instance
-    scraper = cloudscraper.create_scraper()
-
     # Load variables from the .env file
-    load_dotenv()
-
-    # Login URL and credentials
-    login_url = "https://easy-speak.org/login.php"
-    login_payload = {
-        "username": os.getenv("EASY_SPEAK_USERNAME"),
-        "password": os.getenv("EASY_SPEAK_PASSWORD") 
-    }
-
-    # Perform login
-    login_response = scraper.post(login_url, data=login_payload)
-
-    # Check if login was successful
-    if login_response.status_code == 200:
-        print("Login successful!")
-    
+    load_dotenv(override=True)
 
     generate_agenda()
 
     post_agenda_to_slack()
+    
